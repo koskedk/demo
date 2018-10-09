@@ -1,7 +1,10 @@
-﻿using System;
+﻿
+using System;
 using System.Reflection;
 using Demo.Core.Commands;
+using Demo.Core.Interfaces;
 using Demo.Infrastructure;
+using Demo.Infrastructure.Repository;
 using Hangfire;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -25,7 +28,6 @@ namespace Demo
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables();
-
             Configuration = builder.Build();
         }
         
@@ -33,12 +35,13 @@ namespace Demo
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            services.AddMediatR(typeof(SaveFacility));
-            
+           
             var connectionString = Startup.Configuration["ConnectionStrings:demoConnection"];
-            
             services.AddDbContext<DemoContext>(o => o.UseSqlServer(connectionString,
                 x => x.MigrationsAssembly(typeof(DemoContext).GetTypeInfo().Assembly.GetName().Name)));
+
+            services.AddScoped<IFacilityRepository,FacilityRepository>();
+            services.AddMediatR(typeof(SaveFacility));
 
             try
             {
@@ -52,7 +55,7 @@ namespace Demo
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env,IServiceProvider provider)
         {
             if (env.IsDevelopment())
             {
@@ -76,7 +79,25 @@ namespace Demo
                 Log.Fatal(e, "Hangfire is down !");
             }
             
+            EnsureMigrationOfContext<DemoContext>(provider);
             Log.Debug("Startup OK");
+        }
+        
+        public static void EnsureMigrationOfContext<T>(IServiceProvider app) where T : DbContext
+        {
+            var contextName = typeof(T).Name;
+            Log.Debug($"initializing Database context: {contextName}");
+            var context = app.GetService<T>();
+            try
+            {
+                context.Database.Migrate();
+                Log.Debug($"initializing Database context: {contextName} [OK]");
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"initializing Database context: {contextName} Error");
+                Log.Debug($"{e}");
+            }
         }
     }
 }

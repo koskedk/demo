@@ -8,26 +8,26 @@ using Serilog;
 
 namespace Demo.Core.CommandHandlers
 {
-    public class SaveFacilityHandler:IRequestHandler<SaveFacility>
+    public class DeleteFacilityHandler:IRequestHandler<DeleteFacility>
     {
         private readonly IFacilityRepository _repository;
 
-        public SaveFacilityHandler(IFacilityRepository repository)
+        public DeleteFacilityHandler(IFacilityRepository repository)
         {
             _repository = repository;
         }
 
 
-        public async Task<Unit> Handle(SaveFacility request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(DeleteFacility request, CancellationToken cancellationToken)
         {
             try
             {
-                await _repository.CreateOrUpdateAsync(new Facility(request.Id, request.Name));
+                await _repository.RemoveAsync(request.Id);
                 await _repository.SaveAsync();
             }
             catch (Exception e)
             {
-               Log.Error(e,"Error on SaveFacility");
+                Log.Error(e,"Error on DeleteFacility");
                 throw;
             }
 

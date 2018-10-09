@@ -35,7 +35,7 @@ namespace Demo
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddMediatR(typeof(SaveFacility));
             
-            var connectionString = Startup.Configuration["ConnectionStrings:eticaConnection"];
+            var connectionString = Startup.Configuration["ConnectionStrings:demoConnection"];
             
             services.AddDbContext<DemoContext>(o => o.UseSqlServer(connectionString,
                 x => x.MigrationsAssembly(typeof(DemoContext).GetTypeInfo().Assembly.GetName().Name)));

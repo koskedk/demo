@@ -8,7 +8,9 @@ using Serilog;
 
 namespace Demo.Controllers
 {
-    public class FacilityController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class FacilityController : ControllerBase
     {
         private readonly IMediator _mediator;
 

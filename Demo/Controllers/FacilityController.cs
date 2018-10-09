@@ -32,6 +32,7 @@ namespace Demo.Controllers
                 var msg = $"Error loading {nameof(Facility)}(s)";
                 Log.Error(e, msg);
                 return StatusCode(500, msg);
+                
             }
         }
     }
